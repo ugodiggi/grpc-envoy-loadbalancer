@@ -14,6 +14,7 @@
 """The Python implementation of the GRPC helloworld.Greeter server."""
 
 from concurrent import futures
+import logging
 import os
 import time
 
@@ -28,7 +29,9 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 class Greeter(helloworld_pb2_grpc.GreeterServicer):
 
     def SayHello(self, request, context):
-        return helloworld_pb2.HelloReply(message='Hello, %s from host=%s!' % (request.name, os.environ.get("HOSTNAME", "Unknown")))
+        message = 'Hello, %s from host=%s!' % (request.name, os.environ.get("HOSTNAME", "Unknown"))
+        logging.info('Received SayHello request, will respond with %r', message)
+        return helloworld_pb2.HelloReply(message=message)
 
 
 def serve():
@@ -43,5 +46,17 @@ def serve():
         server.stop(0)
 
 
+def _init_logging():
+    DATE_FMT = '%Y%m%d %H:%M:%S'
+    FORMAT = (
+      '%(levelname).1s'  # A single char for the log level ('I', 'W', 'E')
+      '%(asctime)s '  # timestamp printed according to DATE_FMT
+      '%(filename)s:%(lineno)d '  # the name, line number of the log statement
+      '%(message).10000s' # the log message, limited to 10000 characters for sanity.
+    )
+    logging.basicConfig(format=FORMAT, datefmt=DATE_FMT, level='INFO')
+
+
 if __name__ == '__main__':
+    _init_logging()
     serve()
